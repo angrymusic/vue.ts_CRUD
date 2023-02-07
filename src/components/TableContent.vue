@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { ref } from "vue";
-defineProps({
+import { ref, onBeforeMount } from "vue";
+const props = defineProps({
   id: Number,
   name: String,
   title: String,
   content: String,
-  dateTime: Array,
+  dateTime: String,
 });
 const emit = defineEmits(["checkRow", "unCheckRow"]);
 const isChecked = ref(false);
-const checkRow = (id: number) => {
+const newDateForm = ref("");
+const checkRow = (id: number | undefined) => {
   if (!isChecked.value) {
     emit("checkRow", id);
     isChecked.value = true;
@@ -18,17 +19,42 @@ const checkRow = (id: number) => {
     isChecked.value = false;
   }
 };
+onBeforeMount(() => {
+  let time = new Date(String(props.dateTime));
+  //new Date 하지 않으면 함수 사용 불가
+  newDateForm.value =
+    time.getFullYear() +
+    "년 " +
+    time.getMonth() +
+    1 +
+    "월 " +
+    time.getDate() +
+    "일 " +
+    time.getHours() +
+    "시 " +
+    time.getMinutes() +
+    "분 " +
+    time.getSeconds() +
+    "초";
+});
 </script>
 <template>
   <tr v-bind:class="{ isChecked: isChecked }">
     <td><button @click="checkRow(id)">선택</button></td>
     <td>{{ id }}</td>
-    <td>{{ name }}</td>
-    <td>{{ title }}</td>
-    <td>{{ content }}</td>
-    <td v-if="dateTime">
-      {{ dateTime[0] }}년 {{ dateTime[1] }}월 {{ dateTime[2] }}일
-      {{ dateTime[3] }}시 {{ dateTime[4] }}분 {{ dateTime[5] }}초
+    <!-- <td>{{ name }}</td> -->
+    <td>
+      <RouterLink :to="{ path: `/contents/${props.id}` }">{{
+        title
+      }}</RouterLink>
+    </td>
+    <td>
+      <RouterLink :to="{ path: `/contents/${props.id}` }">{{
+        content
+      }}</RouterLink>
+    </td>
+    <td>
+      {{ newDateForm }}
     </td>
   </tr>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import TableContent from "../components/TableContent.vue";
 import axios from "axios";
 import { RouterLink } from "vue-router";
@@ -9,16 +9,16 @@ interface dataType {
   name: string;
   title: string;
   content: string;
-  dateTime: [];
+  dateTime: string;
 }
 
 const tableElements = ref<dataType[]>([]);
 const checkedRows = ref<number[]>([]);
 const updateRow = ref<number>(0);
 
-const refreshTable = async () => {
+const refreshTable = () => {
   //   tableElements.value = [];
-  await axios
+  axios
     .get<dataType[]>("http://112.220.234.180:18080/api/post/list")
     .then((res) => {
       //   for (let i = 0; i < res.data.length; i++) {
@@ -31,6 +31,7 @@ const refreshTable = async () => {
       //       dateTime: info.dateTime,
       //     });
       //   }
+      console.log(res.data);
       tableElements.value = res.data;
     })
     .catch((err) => {
@@ -65,9 +66,10 @@ const unCheckRow = (id: number) => {
   }
   console.log(updateRow.value);
 };
-const deleteRow = async () => { //promise
+const deleteRow = () => {
+  //promise
   for (let i = 0; i < checkedRows.value.length; i++) {
-    await axios
+    axios
       .delete("http://112.220.234.180:18080/api/post/" + checkedRows.value[i])
       .then((res) => {
         console.log(res);
@@ -79,8 +81,8 @@ const deleteRow = async () => { //promise
   refreshTable();
 };
 
-const deleteAll = async () => {
-  await axios
+const deleteAll = () => {
+  axios
     .delete("http://112.220.234.180:18080/api/post/all")
     .then((res) => {})
     .catch((err) => {
@@ -88,22 +90,24 @@ const deleteAll = async () => {
     });
 };
 
-refreshTable();
+onMounted(() => {
+  refreshTable();
+});
 </script>
 
 <template>
   <button @click="refreshTable">조회</button>
-  <button><RouterLink to="/write">추가</RouterLink></button>
+  <RouterLink to="/write"><button>추가</button></RouterLink>
   <button @click="deleteRow">삭제</button>
-  <button>
-    <RouterLink :to="{ path: `/update/${updateRow}` }">수정</RouterLink>
-  </button>
+  <RouterLink v-if="updateRow !== 0" :to="{ path: `/update/${updateRow}` }"
+    ><button>수정</button></RouterLink
+  >
   <button @click="deleteAll">전체삭제</button>
   <table>
     <tr>
       <td>check</td>
       <td>id</td>
-      <td>name</td>
+      <!-- <td>name</td> -->
       <td>title</td>
       <td>content</td>
       <td>dateTime</td>

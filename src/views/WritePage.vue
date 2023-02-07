@@ -5,8 +5,8 @@ let name = ref("");
 let title = ref("");
 let content = ref("");
 
-const writeContent = async () => {
-  await axios
+const writeContent = () => {
+  axios
     .post("http://112.220.234.180:18080/api/post", {
       name: name.value,
       title: title.value,
@@ -22,8 +22,8 @@ const writeContent = async () => {
 </script>
 
 <template>
-  <button><RouterLink to="/">취소</RouterLink></button>
-  <button @click="writeContent"><RouterLink to="/">작성</RouterLink></button>
+  <RouterLink to="/"><button>취소</button></RouterLink>
+  <RouterLink to="/"><button @click="writeContent">작성</button></RouterLink>
   <form>
     <input type="text" v-model="name" placeholder="name" /><br />
     <input type="text" v-model="title" placeholder="title" /><br />
