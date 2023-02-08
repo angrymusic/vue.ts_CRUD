@@ -2,16 +2,15 @@
 import { ref, onMounted } from "vue";
 import axios from "axios";
 let content = ref("");
-let beforeTitle = ref("");
-let beforeContent = ref("");
+let title = ref("");
 
 const props = defineProps({ id: String });
-onMounted(() => {
-  axios
+onMounted(async () => {
+  await axios
     .get("http://112.220.234.180:18080/api/post/" + props.id)
     .then((res) => {
-      beforeTitle.value = res.data.title;
-      beforeContent.value = res.data.content;
+      title.value = res.data.title;
+      content.value = res.data.content;
       console.log(res.data);
     })
     .catch((err) => {
@@ -22,8 +21,8 @@ onMounted(() => {
 const writeContent = (id: string | undefined) => {
   console.log(id);
   axios
-    .put("http://112.220.234.180:18080/api/post/" + id, {
-      id: id,
+    .patch("http://112.220.234.180:18080/api/post/" + id, {
+      title: title.value,
       content: content.value,
     })
     .then((res) => {
@@ -43,7 +42,7 @@ const writeContent = (id: string | undefined) => {
     ><button @click="writeContent(props.id)">수정</button></RouterLink
   >
   <form>
-    <input type="text" placeholder="title" v-model="beforeTitle" /><br />
-    <textarea placeholder="content" v-model="beforeContent"> </textarea>
+    <input type="text" placeholder="title" v-model="title" /><br />
+    <textarea placeholder="content" v-model="content"> </textarea>
   </form>
 </template>

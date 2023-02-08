@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import TableContent from "../components/TableContent.vue";
 import axios from "axios";
 import { RouterLink } from "vue-router";
@@ -14,11 +14,13 @@ interface dataType {
 
 const tableElements = ref<dataType[]>([]);
 const checkedRows = ref<number[]>([]);
-const updateRow = ref<number>(0);
+const updateRow = computed(() =>
+  checkedRows.value.length === 0 ? 0 : checkedRows.value[0]
+);
 
-const refreshTable = () => {
+const refreshTable = async () => {
   //   tableElements.value = [];
-  axios
+  await axios
     .get<dataType[]>("http://112.220.234.180:18080/api/post/list")
     .then((res) => {
       //   for (let i = 0; i < res.data.length; i++) {
@@ -31,7 +33,6 @@ const refreshTable = () => {
       //       dateTime: info.dateTime,
       //     });
       //   }
-      console.log(res.data);
       tableElements.value = res.data;
     })
     .catch((err) => {
@@ -42,42 +43,40 @@ const refreshTable = () => {
 const checkRow = (id: number) => {
   console.log("check");
   checkedRows.value.push(id);
-
-  if (checkedRows.value.length !== 0) {
-    //처음 선택된 row가 수정할 row
-    updateRow.value = checkedRows.value[0];
-  } else {
-    updateRow.value = 0;
-  }
-  console.log(updateRow.value);
 };
 const unCheckRow = (id: number) => {
   console.log("uncheck");
-  for (let i = 0; i < checkedRows.value.length; i++) {
-    if (checkedRows.value[i] === id) {
-      checkedRows.value.splice(i, 1);
-    }
-  }
-  if (checkedRows.value.length !== 0) {
-    //처음 선택된 row가 수정할 row
-    updateRow.value = checkedRows.value[0];
-  } else {
-    updateRow.value = 0;
-  }
+  checkedRows.value = checkedRows.value.filter((n) => n !== id);
+
+  // for (let i = 0; i < checkedRows.value.length; i++) {
+  //   if (checkedRows.value[i] === id) {
+  //     checkedRows.value.splice(i, 1);
+  //   }
+  // }
+
   console.log(updateRow.value);
 };
-const deleteRow = () => {
+const deleteRow = async () => {
   //promise
+  // await Promise.all
+  const deleteList: Promise<void>[] = [];
+
   for (let i = 0; i < checkedRows.value.length; i++) {
-    axios
-      .delete("http://112.220.234.180:18080/api/post/" + checkedRows.value[i])
-      .then((res) => {
-        console.log(res);
-      })
-      .catch((err) => {
-        console.log("[선택 삭제 에러] " + err);
-      });
+    console.log(checkedRows.value[i]);
+    deleteList.push(
+      axios.delete(
+        "http://112.220.234.180:18080/api/post/" + checkedRows.value[i]
+      )
+      // .then((res) => {
+      //   console.log(res);
+      // })
+      // .catch((err) => {
+      //   console.log("[선택 삭제 에러] " + err);
+      // })
+    );
   }
+  const response = await Promise.all(deleteList);
+  console.log(response);
   refreshTable();
 };
 
@@ -90,8 +89,8 @@ const deleteAll = () => {
     });
 };
 
-onMounted(() => {
-  refreshTable();
+onMounted(async () => {
+  await refreshTable();
 });
 </script>
 
@@ -124,7 +123,6 @@ onMounted(() => {
       v-bind:dateTime="item.dateTime"
     ></TableContent>
   </table>
-  <RouterView></RouterView>
 </template>
 <style>
 td {
